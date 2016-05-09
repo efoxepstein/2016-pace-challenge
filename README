@@ -10,7 +10,9 @@ decompositions:
   Degree, except it greedily picks a vertex whose neighborhood's
   complement is edge-minimal.
 
-To build, run: $ make
+To build, run:
+
+  $ make
 
 This produces 2 executables:
 
