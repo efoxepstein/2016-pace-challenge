@@ -1,0 +1,19 @@
+This project implements two heuristics for finding tree decompositions:
+
+  (1) Minimum Degree: this algorithm selects the vertex v of minimum degree,
+                      adds edges to turn its neighborhood into a clique,
+                      recurses on the graph resulting from deleting v,
+                      then adds a bag containing v and its neighbors.
+
+  (2) Minimum Fill-In: this algorithm operates identically to Minimum Degree,
+                       except it greedily picks a vertex whose neighborhood's
+                       complement is edge-minimal.
+
+To build, run:
+  $ make
+
+This produces 2 executables:
+
+  (1) bin/td-validate: a non-throwing version of the provided validation script
+  (2) bin/tw-heuristic: an executable that tries both heuristics on the provided
+                        graph and outputs the better of the two
