@@ -1,50 +1,50 @@
-EXECS := bin/td-validate bin/tw-heuristic
 EXECSOURCES := src/td-validate.cpp src/tw-heuristic.cpp
 SOURCES := src/minimum_degree_heuristic.cpp
 
-########## PROBABLY NO NEED TO CHANGE BELOW HERE ########## 
+DEBUG ?= 0
 
-OBJECTS = $(SOURCES:.cpp=.o)
+###################################################
+
+SRCDIR := src
+OBJDIR := obj
+BINDIR := bin
+
+OBJECTS := $(addprefix $(OBJDIR)/,$(notdir $(SOURCES:.cpp=.o)))
+EXECOBJECTS := $(addprefix $(OBJDIR)/,$(notdir $(EXECSOURCES:.cpp=.o)))
+BINARIES := $(addprefix $(BINDIR)/,$(notdir $(EXECSOURCES:.cpp=)))
 
 CXX        = $(shell which clang++ || which g++)
-CXXFLAGS   = -std=c++11 -Isrc -g
-LDFLAGS    = -lprofiler
-DEBUGFLAGS = -g -fno-omit-frame-pointer -Werror
-WARNFLAGS  = -Wall -Wextra -Wpedantic
-
-DEBUG ?= 1
-
-CXXFLAGS += $(WARNFLAGS)
+CXXFLAGS   = -std=c++11 -Isrc -Wall -Wextra -Wpedantic
+LDFLAGS    =
 
 ifeq ($(DEBUG), 1)
-  CXXFLAGS += $(DEBUGFLAGS) -O0
+  CXXFLAGS += -DDEBUG -O0 -fno-omit-frame-pointer -Werror -g
 else
   CXXFLAGS += -DNDEBUG -O3 -fno-exceptions -fomit-frame-pointer -march=native
 endif
 
 CMD = $(CXX) $(CXXFLAGS) -MMD -MP
 
-all: $(OBJECTS) $(EXECSOURCES:.cpp=.o) $(EXECS)
+all: $(OBJECTS) $(EXECOBJECTS) $(BINARIES)
 .PHONY: all force
 
 CLEANFLAGS = $(CMD) $(LDFLAGS)
 cleanfile: force
 	@echo '$(CLEANFLAGS)' | cmp -s - $@ || echo '$(CLEANFLAGS)' > cleanfile
 
-$(EXECS) : bin/% : src/%.o $(OBJECTS)
+$(BINARIES) : $(BINDIR)/% : $(OBJDIR)/%.o $(OBJECTS)
 	$(CMD) -o $@ $^ $(LDFLAGS) 
 
-src/%.o : src/%.cpp cleanfile
+$(OBJECTS) : | $(OBJDIR)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR) $(BINDIR)
+
+$(OBJDIR)/%.o : $(SRCDIR)/%.cpp cleanfile
 	$(CMD) -o $@ -c $<
 
 clean:
-	rm -f $(EXECS)
-	rm -f *.d bin/*.d src/*.d
-	rm -f *.o bin/*.o src/*.o
-	rm -f *.gcno 
-	rm -f *.gcda
+	rm -f $(BINARIES) *.d $(OBJDIR)/*.d *.o $(OBJDIR)/*.o
 
--include $(wildcard *.d)
--include $(wildcard bin/*.d)
--include $(wildcard src/*.d)
+-include $(wildcard $(OBJDIR)/*.d)
 
