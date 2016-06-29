@@ -13,9 +13,10 @@ class TD {
  public:
   using Bag = size_t;
 
-  void add_leaf(Vertex v) {
+  Bag add_leaf(Vertex v) {
     bags.push_back({v});
     parent.push_back(0);
+    return bags.size() - 1;
   }
 
   Bag add_child(Bag p, std::vector<Vertex> &&contents) {
@@ -43,6 +44,11 @@ class TD {
     }
     for (size_t i = 1; i < bags.size(); ++i)
       out << parent[i] + 1 << ' ' << i + 1 << "\n";
+  }
+
+  void swap(TD &other) {
+    bags.swap(other.bags);
+    parent.swap(other.parent);
   }
 
  private:

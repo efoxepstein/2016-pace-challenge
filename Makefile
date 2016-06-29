@@ -15,17 +15,17 @@ BINARIES := $(addprefix $(BINDIR)/,$(notdir $(EXECSOURCES:.cpp=)))
 
 CXX        = $(shell which clang++ || which g++)
 CXXFLAGS   = -std=c++11 -Isrc -Wall -Wextra -Wpedantic
-LDFLAGS    =
+LDFLAGS    = -lprofiler
 
 ifeq ($(DEBUG), 1)
   CXXFLAGS += -DDEBUG -O0 -fno-omit-frame-pointer -Werror -g
 else
-  CXXFLAGS += -DNDEBUG -O3 -fno-exceptions -fomit-frame-pointer -march=native
+  CXXFLAGS += -DNDEBUG -O3 -g -fno-exceptions -fomit-frame-pointer -march=native
 endif
 
 CMD = $(CXX) $(CXXFLAGS) -MMD -MP
 
-all: $(OBJECTS) $(EXECOBJECTS) $(BINARIES)
+all: $(OBJECTS) $(EXECOBJECTS) $(BINARIES) symlink
 .PHONY: all force
 
 CLEANFLAGS = $(CMD) $(LDFLAGS)
@@ -42,6 +42,10 @@ $(OBJDIR):
 
 $(OBJDIR)/%.o : $(SRCDIR)/%.cpp cleanfile
 	$(CMD) -o $@ -c $<
+
+symlink: bin/tw-heuristic
+	@rm -f tw-heuristic
+	@ln -s bin/tw-heuristic tw-heuristic
 
 clean:
 	rm -f $(BINARIES) *.d $(OBJDIR)/*.d *.o $(OBJDIR)/*.o

@@ -25,12 +25,17 @@ class Graph {
   explicit Graph(const std::string &filename) {
     std::vector<Edge> edges;
     std::ifstream graph_file(filename);
-    std::string ignore;
-    std::getline(graph_file, ignore);
+
     Vertex v, w, n = 0;
+
+    std::string header_line;
+    std::getline(graph_file, header_line);
+    for (size_t i = 5; header_line[i] != ' '; ++i) {
+      n = n * 10 + (header_line[i] - '0');
+    }
+
     while (graph_file >> v >> w) {
       edges.push_back({std::min(v, w) - 1, std::max(v, w) - 1});
-      n = std::max(n, std::max(v, w));
     }
     num_vertices_ = n;
     adj.resize(n);
