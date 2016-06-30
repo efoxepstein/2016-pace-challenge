@@ -9,7 +9,7 @@ namespace {
 
 using ElimOrder = std::vector<Vertex>;
 
-TD elimination_ordering_to_td(const Graph &graph, ElimOrder order) {
+TD elimination_ordering_to_td(Graph &graph, ElimOrder order) {
   always_assert(graph.num_vertices() == order.size());
 
   TD td;
@@ -51,10 +51,14 @@ void triangulate(Graph &graph, Vertex v) {
   for (Vertex w : graph.neighbors(v))
     graph.remove_arc(w, v);
 
-  for (Vertex w1 : graph.neighbors(v))
-    for (Vertex w2 : graph.neighbors(v))
-      if (w1 != w2 && !graph.adjacent(w1, w2) && !graph.adjacent(w2, w1))
+  const auto &neighbors = graph.neighbors(v);
+  for (auto i1 = neighbors.begin(); i1 != neighbors.end(); ++i1) {
+    for (auto i2 = std::next(i1); i2 != neighbors.end(); ++i2) {
+      Vertex w1 = *i1, w2 = *i2;
+      if (!graph.adjacent(w1, w2) && !graph.adjacent(w2, w1))
         graph.add_arc(w1, w2), graph.add_arc(w2, w1);
+    }
+  }
 }
 
 double noise() {
@@ -66,26 +70,33 @@ double noise() {
   z = t ^ x ^ y;
   return (z & 0xFFFF) / ((double) 0xFFF0);
 }
+}
 
-template <class Fn>
-TD minimum_x_heuristic(Graph &graph, Fn fn) {
+TD minimum_degree_heuristic(Graph graph) {
   ElimOrder order;
   order.reserve(graph.num_vertices());
 
   std::vector<bool> seen(graph.num_vertices(), false);
-
+  std::vector<size_t> prev_deg(graph.num_vertices());
   std::priority_queue<std::pair<double, Vertex>> pq;
 
-  for (Vertex v : graph.vertices())
-    pq.emplace(fn(graph, v) + noise(), v);
+  for (Vertex v : graph.vertices()) {
+    prev_deg[v] = graph.degree(v);
+    pq.emplace(prev_deg[v] + noise(), v);
+  }
 
   while (pq.size() > 0) {
+    std::cout << pq.size() << "\n";
     double k = pq.top().first;
     Vertex v = pq.top().second;
     pq.pop();
 
+    if (seen[v])
+      continue;
 
-    if (seen[v] || (size_t) k != fn(graph, v)) {
+    if ((size_t) k != graph.degree(v)) {
+      prev_deg[v] = graph.degree(v);
+      pq.emplace(prev_deg[v] + noise(), v);
       continue;
     }
 
@@ -94,9 +105,12 @@ TD minimum_x_heuristic(Graph &graph, Fn fn) {
 
     triangulate(graph, v);
 
-    for (Vertex w : graph.neighbors(v))
-      if (!seen[w])
-        pq.emplace(fn(graph, w) + noise(), w);
+    for (Vertex w : graph.neighbors(v)) {
+      if (graph.degree(w) < prev_deg[w]) {
+        prev_deg[w] = graph.degree(w);
+        pq.emplace(prev_deg[w] + noise(), w);
+      }
+    }
   }
 
   for (Vertex v : graph.vertices())
@@ -104,24 +118,4 @@ TD minimum_x_heuristic(Graph &graph, Fn fn) {
       graph.add_arc(w, v);
 
   return elimination_ordering_to_td(graph, order);
-}
-
-}  // anonymous namespace
-
-TD minimum_degree_heuristic(const Graph &graph) {
-  Graph copy = graph;
-  return minimum_x_heuristic(
-      copy, [](const Graph &graph, Vertex v) { return graph.degree(v); });
-}
-
-TD minimum_fillin_heuristic(const Graph &graph) {
-  Graph copy = graph;
-  return minimum_x_heuristic(copy, [](const Graph &graph, Vertex v) {
-    size_t count = 0;
-    for (Vertex w1 : graph.neighbors(v))
-      for (Vertex w2 : graph.neighbors(v))
-        if (w1 < w2 && graph.adjacent(w1, w2) && graph.adjacent(w2, w1))
-          ++count;
-    return graph.degree(v) * (graph.degree(v) - 1) / 2 - count;
-  });
 }
