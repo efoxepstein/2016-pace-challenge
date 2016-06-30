@@ -86,7 +86,6 @@ TD minimum_degree_heuristic(Graph graph) {
   }
 
   while (pq.size() > 0) {
-    std::cout << pq.size() << "\n";
     double k = pq.top().first;
     Vertex v = pq.top().second;
     pq.pop();
