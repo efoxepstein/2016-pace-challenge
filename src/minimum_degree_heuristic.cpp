@@ -48,27 +48,33 @@ TD elimination_ordering_to_td(Graph &graph, ElimOrder order) {
 }
 
 void triangulate(Graph &graph, Vertex v) {
-  for (Vertex w : graph.neighbors(v))
+  const auto &neighbors = graph.neighbors(v);
+
+  for (Vertex w : neighbors)
     graph.remove_arc(w, v);
 
-  const auto &neighbors = graph.neighbors(v);
-  for (auto i1 = neighbors.begin(); i1 != neighbors.end(); ++i1) {
-    for (auto i2 = std::next(i1); i2 != neighbors.end(); ++i2) {
-      Vertex w1 = *i1, w2 = *i2;
+  if (neighbors.size() < 2)
+    return;
+
+  for (size_t i1 = 0; i1 < neighbors.size() - 1; ++i1) {
+    Vertex w1 = neighbors[i1];
+    for (auto i2 = i1 + 1; i2 < neighbors.size(); ++i2) {
+      Vertex w2 = neighbors[i2];
+      always_assert(w2 < graph.num_vertices());
       if (!graph.adjacent(w1, w2) && !graph.adjacent(w2, w1))
         graph.add_arc(w1, w2), graph.add_arc(w2, w1);
     }
   }
 }
 
-double noise() {
+float noise() {
   static uint32_t x=123456789, y=362436069, z=521288629;
   x ^= x << 16; x ^= x >> 5; x ^= x << 1;
   uint32_t t = x;
   x = y;
   y = z;
   z = t ^ x ^ y;
-  return (z & 0xFFFF) / ((double) 0xFFF0);
+  return (z & 0xFFFF) / ((float) 0xFFF0);
 }
 }
 
@@ -78,7 +84,8 @@ TD minimum_degree_heuristic(Graph graph) {
 
   std::vector<bool> seen(graph.num_vertices(), false);
   std::vector<size_t> prev_deg(graph.num_vertices());
-  std::priority_queue<std::pair<double, Vertex>> pq;
+  using QElement = std::pair<float, Vertex>;
+  std::priority_queue<QElement, std::vector<QElement>, std::greater<QElement>> pq;
 
   for (Vertex v : graph.vertices()) {
     prev_deg[v] = graph.degree(v);
@@ -86,7 +93,7 @@ TD minimum_degree_heuristic(Graph graph) {
   }
 
   while (pq.size() > 0) {
-    double k = pq.top().first;
+    float k = pq.top().first;
     Vertex v = pq.top().second;
     pq.pop();
 

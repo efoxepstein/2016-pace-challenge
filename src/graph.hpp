@@ -1,4 +1,6 @@
 #pragma once
+#include <iostream>
+#include <algorithm>
 #include <cstdint>
 #include <cstddef>
 #include <cstdio>
@@ -8,10 +10,11 @@
 #include <utility>
 #include <vector>
 
+#include "always_assert.hpp"
 #include "range.hpp"
 
 using Vertex = uint32_t;
-using VertexList = std::forward_list<Vertex>;
+using VertexList = std::vector<Vertex>;
 
 using Edge = std::pair<Vertex, Vertex>;
 
@@ -21,7 +24,7 @@ class Graph {
 
   std::vector<bool> adj;
   std::vector<size_t> deg;
-  std::vector<std::forward_list<Vertex>> adj_list;
+  std::vector<VertexList> adj_list;
 
   size_t idx(Vertex u, Vertex v) const {
     return u * num_vertices_ + v;
@@ -59,7 +62,8 @@ class Graph {
   size_t num_vertices() const { return num_vertices_; }
 
   const VertexList &neighbors(Vertex v) {
-    adj_list[v].remove_if([v, this] (Vertex w) { return !adjacent(v, w); });
+    auto end = std::remove_if(adj_list[v].begin(), adj_list[v].end(), [v, this] (Vertex w) { return !adjacent(v, w); });
+    adj_list[v].erase(end, adj_list[v].end());
     return adj_list[v];
   }
 
@@ -67,13 +71,16 @@ class Graph {
   Range<Vertex> vertices() const { return {Vertex(0), Vertex(num_vertices())}; }
   bool adjacent(Vertex v, Vertex w) const { return adj[idx(v, w)]; }
   void add_arc(Vertex u, Vertex v) {
-    if (adj[idx(u, v)]) return;
+    if (adj[idx(u, v)])
+      return;
     adj[idx(u, v)] = true;
-    adj_list[u].push_front(v);
+    adj_list[u].push_back(v);
     ++deg[u];
   }
   void remove_arc(Vertex u, Vertex v) { 
+    always_assert(adj[idx(u,v)]);
     adj[idx(u,v)] = false;
+    always_assert(deg[u] > 0);
     --deg[u];
   }
 };

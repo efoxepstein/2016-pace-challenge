@@ -15,7 +15,7 @@ BINARIES := $(addprefix $(BINDIR)/,$(notdir $(EXECSOURCES:.cpp=)))
 
 CXX        = $(shell which clang++ || which g++)
 CXXFLAGS   = -std=c++11 -Isrc -Wall -Wextra -Wpedantic
-LDFLAGS    = -lprofiler
+LDFLAGS    =
 
 ifeq ($(DEBUG), 1)
   CXXFLAGS += -DDEBUG -O0 -fno-omit-frame-pointer -Werror -g
