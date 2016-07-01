@@ -43,7 +43,8 @@ TD elimination_ordering_to_td(Graph &graph, ElimOrder order) {
     }
   }
 
-  
+  // always_assert(td.is_valid(graph));
+
   return td;
 }
 
@@ -68,13 +69,15 @@ void triangulate(Graph &graph, Vertex v) {
 }
 
 float noise() {
-  static uint32_t x=123456789, y=362436069, z=521288629;
-  x ^= x << 16; x ^= x >> 5; x ^= x << 1;
+  static uint32_t x = 123456789, y = 362436069, z = 521288629;
+  x ^= x << 16;
+  x ^= x >> 5;
+  x ^= x << 1;
   uint32_t t = x;
   x = y;
   y = z;
   z = t ^ x ^ y;
-  return (z & 0xFFFF) / ((float) 0xFFF0);
+  return (z & 0xFFFF) / ((float)0xFFF0);
 }
 
 template <class Fn>
@@ -86,7 +89,8 @@ TD minimum_x_heuristic(Graph &graph, Fn fn) {
   std::vector<size_t> prev_fn_val(graph.num_vertices());
 
   using QElement = std::pair<float, Vertex>;
-  std::priority_queue<QElement, std::vector<QElement>, std::greater<QElement>> pq;
+  std::priority_queue<QElement, std::vector<QElement>, std::greater<QElement>>
+      pq;
 
   for (Vertex v : graph.vertices()) {
     prev_fn_val[v] = fn(graph, v);
@@ -101,7 +105,7 @@ TD minimum_x_heuristic(Graph &graph, Fn fn) {
     if (seen[v])
       continue;
 
-    if ((size_t) k != fn(graph, v)) {
+    if ((size_t)k != fn(graph, v)) {
       prev_fn_val[v] = fn(graph, v);
       pq.emplace(prev_fn_val[v] + noise(), v);
       continue;
@@ -134,7 +138,7 @@ size_t fill_in(Graph &g, Vertex v) {
   if (neighbors.size() < 2)
     return 0;
   for (size_t i = 0; i < neighbors.size() - 1; ++i)
-    for (size_t j = i+1; j < neighbors.size(); ++j)
+    for (size_t j = i + 1; j < neighbors.size(); ++j)
       if (!g.adjacent(neighbors[i], neighbors[j]))
         ++missing;
   return missing;
@@ -142,9 +146,8 @@ size_t fill_in(Graph &g, Vertex v) {
 }
 
 TD minimum_degree_heuristic(Graph graph) {
-  return minimum_x_heuristic(graph, [](Graph &g, Vertex v) {
-        return g.degree(v);
-      });
+  return minimum_x_heuristic(graph,
+                             [](Graph &g, Vertex v) { return g.degree(v); });
 }
 
 TD minimum_fillin_heuristic(Graph graph) {

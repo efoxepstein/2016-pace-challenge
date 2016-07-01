@@ -1,4 +1,4 @@
-EXECSOURCES := src/td-validate.cpp src/tw-heuristic.cpp
+EXECSOURCES := src/tw-heuristic.cpp src/td-validate.cpp
 SOURCES := src/minimum_degree_heuristic.cpp
 
 DEBUG ?= 0
@@ -50,8 +50,11 @@ symlink: bin/tw-heuristic
 clean:
 	rm -f $(BINARIES) *.d $(OBJDIR)/*.d *.o $(OBJDIR)/*.o
 
-test: bin/tw-heuristic
+test: bin/tw-heuristic bin/td-validate
 	bin/test_all
+
+kill:
+	@kill -9 `pidof tw-heuristic`
 
 -include $(wildcard $(OBJDIR)/*.d)
 

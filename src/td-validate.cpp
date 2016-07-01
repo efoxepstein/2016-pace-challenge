@@ -1,10 +1,10 @@
-#include <vector>
 #include <algorithm>
 #include <set>
 #include <unordered_set>
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include "always_assert.hpp"
 

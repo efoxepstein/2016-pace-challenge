@@ -1,11 +1,32 @@
 #!/usr/bin/env bash
 while read line; do
-  echo $line
-  bin/tw-heuristic -s `date +%s` $line > /tmp/tree-decomp &
+  time=`date +%s`
+  echo "bin/tw-heuristic -s $time $line"
+  bin/tw-heuristic -s $time $line > /tmp/tree-decomp &
   pid=$!
-  sleep 5
+  sleep 30
+  echo "Sending SIGTERM"
   kill -SIGTERM $pid
-  sleep 0.5
-  kill -9 $pid &> /dev/null
-  bin/td-validate $line /tmp/tree-decomp
+  sleep 1
+  if ps -p $pid > /dev/null ; then
+    echo "Didn't finish in time"
+    echo "Sending SIGKILL"
+    kill -SIGKILL $pid
+    break
+  else
+    echo "Validating"
+    echo "bin/td-validate $line /tmp/tree-decomp"
+    bin/td-validate $line /tmp/tree-decomp &> /tmp/validation
+    if [ $? -ne 0 ]; then
+      echo "Validation failed"
+      cat /tmp/tree-decomp
+      cat /tmp/validation
+      break
+    fi
+    if grep -q invalid /tmp/validation ; then
+      cat /tmp/tree-decomp
+      cat /tmp/validation
+      break
+    fi
+  fi
 done < data/directory

@@ -1,5 +1,5 @@
 #pragma once
-#include <cstddef>        // for size_t
+#include <cstddef>  // for size_t
 #include <utility>
 
 template <class Iter>

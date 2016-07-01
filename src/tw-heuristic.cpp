@@ -14,25 +14,23 @@
 #include "tree_decomposition.hpp"
 
 namespace {
-  std::atomic<size_t> best_width(std::numeric_limits<size_t>::max());
-  std::atomic<TD *> best_td(new TD());
-  TD *tmp;
-  Graph *graph;
+std::atomic<size_t> best_width(std::numeric_limits<size_t>::max());
+std::atomic<TD *> best_td(new TD());
+TD *tmp;
+Graph *graph;
 
-  void signal_handler(int signum) {
-
-    if (signum == SIGUSR1) {
-      std::cout << best_width << '\n';
-    } else if (signum == SIGTERM) {
-      if (best_td != nullptr) {
-        best_td.load()->print(*graph);
-        std::cout.flush();
-      }
-      std::exit(0);
+void signal_handler(int signum) {
+  if (signum == SIGUSR1) {
+    std::cout << best_width << '\n';
+  } else if (signum == SIGTERM) {
+    if (best_td != nullptr) {
+      best_td.load()->print(*graph);
+      std::cout.flush();
     }
-  } 
+    std::exit(0);
+  }
 }
-
+}
 
 int main(int argc, char **argv) {
   if (argc <= 1) {
@@ -65,7 +63,7 @@ int main(int argc, char **argv) {
     return 3;
   }
 
-  graph = new Graph(argv[argc-1]);
+  graph = new Graph(argv[argc - 1]);
   tmp = new TD();
 
   *tmp = minimum_degree_heuristic(*graph);

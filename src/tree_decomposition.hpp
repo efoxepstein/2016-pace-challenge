@@ -51,6 +51,48 @@ class TD {
     parent.swap(other.parent);
   }
 
+  bool is_valid(Graph &graph) {
+    // Check coverage
+    std::vector<Vertex> vertices_seen(graph.num_vertices(), false);
+
+    std::set<Edge> all_edges;
+    { // Collect up all edges
+      for (Vertex v : graph.vertices()) 
+        for (Vertex w : graph.neighbors(v))
+          all_edges.insert({v, w});
+    }
+
+    for (const BagImpl &bag : bags) {
+      for (Vertex v : bag) {
+        vertices_seen[v] = true;
+        for (Vertex w : bag) {
+          all_edges.erase({v, w});
+        }
+      }
+    }
+
+    for (bool b : vertices_seen)
+      if (!b)
+        return false;
+
+    if (!all_edges.empty())
+      return false;
+
+    std::set<Vertex> forgotten;
+    for (size_t i = parent.size() - 1; i > 0; --i) {
+      std::set<Vertex> difference;
+      for (Vertex v : bags[i]) {
+        if (forgotten.count(v) > 0)
+          return false;
+        forgotten.insert(v);
+      }
+      for (Vertex v : bags[parent[i]])
+        forgotten.erase(v);
+    }
+
+    return true;
+  }
+
  private:
   using BagImpl = std::vector<Vertex>;
   std::vector<BagImpl> bags;

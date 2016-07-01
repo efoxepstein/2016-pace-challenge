@@ -26,9 +26,7 @@ class Graph {
   std::vector<size_t> deg;
   std::vector<VertexList> adj_list;
 
-  size_t idx(Vertex u, Vertex v) const {
-    return u * num_vertices_ + v;
-  }
+  size_t idx(Vertex u, Vertex v) const { return u * num_vertices_ + v; }
 
  public:
   explicit Graph(const std::string &filename) {
@@ -49,7 +47,7 @@ class Graph {
 
     num_vertices_ = n;
 
-    adj.resize(n*n, false);
+    adj.resize(n * n, false);
     adj_list.resize(n);
     deg.resize(n, 0);
 
@@ -62,7 +60,8 @@ class Graph {
   size_t num_vertices() const { return num_vertices_; }
 
   const VertexList &neighbors(Vertex v) {
-    auto end = std::remove_if(adj_list[v].begin(), adj_list[v].end(), [v, this] (Vertex w) { return !adjacent(v, w); });
+    auto end = std::remove_if(adj_list[v].begin(), adj_list[v].end(),
+                              [v, this](Vertex w) { return !adjacent(v, w); });
     adj_list[v].erase(end, adj_list[v].end());
     return adj_list[v];
   }
@@ -70,6 +69,10 @@ class Graph {
   size_t degree(Vertex v) const { return deg[v]; }
   Range<Vertex> vertices() const { return {Vertex(0), Vertex(num_vertices())}; }
   bool adjacent(Vertex v, Vertex w) const { return adj[idx(v, w)]; }
+  void add_edge(Vertex u, Vertex v) {
+    add_arc(u, v);
+    add_arc(v, u);
+  }
   void add_arc(Vertex u, Vertex v) {
     if (adj[idx(u, v)])
       return;
@@ -77,9 +80,13 @@ class Graph {
     adj_list[u].push_back(v);
     ++deg[u];
   }
-  void remove_arc(Vertex u, Vertex v) { 
-    always_assert(adj[idx(u,v)]);
-    adj[idx(u,v)] = false;
+  void remove_edge(Vertex u, Vertex v) {
+    remove_arc(u, v);
+    remove_arc(v, u);
+  }
+  void remove_arc(Vertex u, Vertex v) {
+    always_assert(adj[idx(u, v)]);
+    adj[idx(u, v)] = false;
     always_assert(deg[u] > 0);
     --deg[u];
   }
