@@ -3,7 +3,7 @@ while read line; do
   echo $line
   bin/tw-heuristic -s `date +%s` $line > /tmp/tree-decomp &
   pid=$!
-  sleep 1
+  sleep 5
   kill -SIGTERM $pid
   sleep 0.5
   kill -9 $pid &> /dev/null
