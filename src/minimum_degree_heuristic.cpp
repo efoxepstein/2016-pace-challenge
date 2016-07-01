@@ -76,20 +76,21 @@ float noise() {
   z = t ^ x ^ y;
   return (z & 0xFFFF) / ((float) 0xFFF0);
 }
-}
 
-TD minimum_degree_heuristic(Graph graph) {
+template <class Fn>
+TD minimum_x_heuristic(Graph &graph, Fn fn) {
   ElimOrder order;
   order.reserve(graph.num_vertices());
 
   std::vector<bool> seen(graph.num_vertices(), false);
-  std::vector<size_t> prev_deg(graph.num_vertices());
+  std::vector<size_t> prev_fn_val(graph.num_vertices());
+
   using QElement = std::pair<float, Vertex>;
   std::priority_queue<QElement, std::vector<QElement>, std::greater<QElement>> pq;
 
   for (Vertex v : graph.vertices()) {
-    prev_deg[v] = graph.degree(v);
-    pq.emplace(prev_deg[v] + noise(), v);
+    prev_fn_val[v] = fn(graph, v);
+    pq.emplace(prev_fn_val[v] + noise(), v);
   }
 
   while (pq.size() > 0) {
@@ -100,9 +101,9 @@ TD minimum_degree_heuristic(Graph graph) {
     if (seen[v])
       continue;
 
-    if ((size_t) k != graph.degree(v)) {
-      prev_deg[v] = graph.degree(v);
-      pq.emplace(prev_deg[v] + noise(), v);
+    if ((size_t) k != fn(graph, v)) {
+      prev_fn_val[v] = fn(graph, v);
+      pq.emplace(prev_fn_val[v] + noise(), v);
       continue;
     }
 
@@ -112,9 +113,10 @@ TD minimum_degree_heuristic(Graph graph) {
     triangulate(graph, v);
 
     for (Vertex w : graph.neighbors(v)) {
-      if (graph.degree(w) < prev_deg[w]) {
-        prev_deg[w] = graph.degree(w);
-        pq.emplace(prev_deg[w] + noise(), w);
+      auto new_val = fn(graph, w);
+      if (new_val < prev_fn_val[w]) {
+        prev_fn_val[w] = new_val;
+        pq.emplace(new_val + noise(), w);
       }
     }
   }
@@ -124,4 +126,27 @@ TD minimum_degree_heuristic(Graph graph) {
       graph.add_arc(w, v);
 
   return elimination_ordering_to_td(graph, order);
+}
+
+size_t fill_in(Graph &g, Vertex v) {
+  size_t missing = 0;
+  const auto &neighbors = g.neighbors(v);
+  if (neighbors.size() < 2)
+    return 0;
+  for (size_t i = 0; i < neighbors.size() - 1; ++i)
+    for (size_t j = i+1; j < neighbors.size(); ++j)
+      if (!g.adjacent(neighbors[i], neighbors[j]))
+        ++missing;
+  return missing;
+}
+}
+
+TD minimum_degree_heuristic(Graph graph) {
+  return minimum_x_heuristic(graph, [](Graph &g, Vertex v) {
+        return g.degree(v);
+      });
+}
+
+TD minimum_fillin_heuristic(Graph graph) {
+  return minimum_x_heuristic(graph, &fill_in);
 }

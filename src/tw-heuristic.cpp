@@ -68,9 +68,13 @@ int main(int argc, char **argv) {
   graph = new Graph(argv[argc-1]);
   tmp = new TD();
 
+  *tmp = minimum_degree_heuristic(*graph);
+  best_width = tmp->width();
+  best_td.exchange(tmp);
+
   while (true) {
     always_assert(tmp != nullptr);
-    *tmp = minimum_degree_heuristic(*graph);
+    *tmp = minimum_fillin_heuristic(*graph);
     size_t tmp_width = tmp->width();
     if (tmp_width < best_width.load()) {
       tmp = best_td.exchange(tmp);

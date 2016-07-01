@@ -2,12 +2,8 @@ This is a submission for Track A (Tree Width) of the the 2016 PACE challenge:
 
   https://pacechallenge.wordpress.com/track-a-treewidth/
 
-This project implements the Minimum Degree heuristic for finding tree
-decompositions.  This algorithm selects the vertex v of minimum degree, adds
-edges to turn its neighborhood into a clique, recurses on the graph resulting
-from deleting v, then adds a bag containing v and its neighbors.
-
-To build, run:
+This project implements the Minimum Degree and Minimum Fill-In heuristic for
+finding tree decompositions. To build, run:
 
   $ make
 
