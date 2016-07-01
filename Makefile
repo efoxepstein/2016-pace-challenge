@@ -50,5 +50,8 @@ symlink: bin/tw-heuristic
 clean:
 	rm -f $(BINARIES) *.d $(OBJDIR)/*.d *.o $(OBJDIR)/*.o
 
+test: bin/tw-heuristic
+	bin/test_all
+
 -include $(wildcard $(OBJDIR)/*.d)
 

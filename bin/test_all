@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+while read line; do
+  echo $line
+  bin/tw-heuristic -s `date +%s` $line > /tmp/tree-decomp &
+  pid=$!
+  sleep 1
+  kill -SIGTERM $pid
+  sleep 0.5
+  kill -9 $pid &> /dev/null
+  bin/td-validate $line /tmp/tree-decomp
+done < data/directory
