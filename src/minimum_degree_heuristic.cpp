@@ -9,7 +9,7 @@ namespace {
 
 using ElimOrder = std::vector<Vertex>;
 
-TD elimination_ordering_to_td(Graph &graph, ElimOrder order) {
+TD elimination_ordering_to_td(const Graph &graph, ElimOrder order) {
   always_assert(graph.num_vertices() == order.size());
 
   TD td;
@@ -42,8 +42,6 @@ TD elimination_ordering_to_td(Graph &graph, ElimOrder order) {
       bag_of_vertex[v] = td.add_child(max_bag, std::move(neighbors));
     }
   }
-
-  // always_assert(td.is_valid(graph));
 
   return td;
 }
@@ -81,16 +79,15 @@ float noise() {
 }
 
 template <class Fn>
-TD minimum_x_heuristic(Graph &graph, Fn fn) {
+TD minimum_x_heuristic(Graph &graph, Fn fn, size_t ub) {
   ElimOrder order;
   order.reserve(graph.num_vertices());
 
   std::vector<bool> seen(graph.num_vertices(), false);
   std::vector<size_t> prev_fn_val(graph.num_vertices());
 
-  using QElement = std::pair<float, Vertex>;
-  std::priority_queue<QElement, std::vector<QElement>, std::greater<QElement>>
-      pq;
+  using QItem = std::pair<float, Vertex>;
+  std::priority_queue<QItem, std::vector<QItem>, std::greater<QItem>> pq;
 
   for (Vertex v : graph.vertices()) {
     prev_fn_val[v] = fn(graph, v);
@@ -109,6 +106,13 @@ TD minimum_x_heuristic(Graph &graph, Fn fn) {
       prev_fn_val[v] = fn(graph, v);
       pq.emplace(prev_fn_val[v] + noise(), v);
       continue;
+    }
+
+    if (graph.neighbors(v).size() >= ub) {
+      std::vector<Vertex> all_vertices;
+      for (Vertex v : graph.vertices())
+        all_vertices.push_back(v);
+      return TD(std::move(all_vertices));
     }
 
     order.push_back(v);
@@ -143,13 +147,16 @@ size_t fill_in(Graph &g, Vertex v) {
         ++missing;
   return missing;
 }
+
+size_t degree(const Graph &g, Vertex v) {
+  return g.degree(v);
+}
 }
 
-TD minimum_degree_heuristic(Graph graph) {
-  return minimum_x_heuristic(graph,
-                             [](Graph &g, Vertex v) { return g.degree(v); });
+TD minimum_degree_heuristic(Graph graph, size_t ub) {
+  return minimum_x_heuristic(graph, &degree, ub);
 }
 
-TD minimum_fillin_heuristic(Graph graph) {
-  return minimum_x_heuristic(graph, &fill_in);
+TD minimum_fillin_heuristic(Graph graph, size_t ub) {
+  return minimum_x_heuristic(graph, &fill_in, ub);
 }

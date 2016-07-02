@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 while read line; do
   time=`date +%s`
+  echo ""
   echo "bin/tw-heuristic -s $time $line"
   bin/tw-heuristic -s $time $line > /tmp/tree-decomp &
   pid=$!
@@ -12,7 +13,6 @@ while read line; do
     echo "Didn't finish in time"
     echo "Sending SIGKILL"
     kill -SIGKILL $pid
-    break
   else
     echo "Validating"
     echo "bin/td-validate $line /tmp/tree-decomp"

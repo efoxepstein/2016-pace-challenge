@@ -4,6 +4,7 @@
 #include <iostream>
 #include <iterator>
 #include <ostream>
+#include <sstream>
 #include <vector>
 
 #include "always_assert.hpp"
@@ -13,54 +14,64 @@ class TD {
  public:
   using Bag = size_t;
 
+  TD() {}
+  TD(std::vector<Vertex> &&starting_bag) {
+    width_ = starting_bag.size();
+    bags.emplace_back(starting_bag);
+    parent.push_back(0);
+  }
+
   Bag add_leaf(Vertex v) {
     bags.push_back({v});
     parent.push_back(0);
+    width_ = std::max(size_t(1), width_);
     return bags.size() - 1;
   }
 
   Bag add_child(Bag p, std::vector<Vertex> &&contents) {
     always_assert(0 <= p && p < bags.size());
+    width_ = std::max(contents.size(), width_);
     bags.emplace_back(contents);
     parent.push_back(p);
     return bags.size() - 1;
   }
 
-  size_t width() const {
-    size_t max_width = 0;
-    for (const auto &bag : bags)
-      max_width = std::max(bag.size(), max_width);
-    return max_width;
-  }
+  size_t width() const { return width_; }
 
-  void print(const Graph &graph, std::ostream &out = std::cout) const {
-    out << "s td " << bags.size() << ' ' << width() << ' '
-        << graph.num_vertices() << "\n";
+  std::string to_string(const Graph &g) const {
+    std::stringstream ss;
+
+    ss<< "s td " << bags.size() << ' ' << width() << ' '
+        << g.num_vertices() << "\n";
     for (size_t i = 0; i < bags.size(); ++i) {
-      out << "b " << i + 1 << ' ';
+      ss << "b " << i + 1 << ' ';
       for (Vertex v : bags[i])
-        out << v + 1 << ' ';
-      out << "\n";
+        ss << v + 1 << ' ';
+      ss << "\n";
     }
     for (size_t i = 1; i < bags.size(); ++i)
-      out << parent[i] + 1 << ' ' << i + 1 << "\n";
+      ss << parent[i] + 1 << ' ' << i + 1 << "\n";
+
+    return ss.str();
+  }
+
+  void print(const Graph &g, std::ostream &out = std::cout) const {
+    out << to_string(g);
   }
 
   void swap(TD &other) {
     bags.swap(other.bags);
     parent.swap(other.parent);
+    std::swap(width_, other.width_);
   }
 
-  bool is_valid(Graph &graph) {
-    // Check coverage
+  bool is_valid(const Graph &graph) {
     std::vector<Vertex> vertices_seen(graph.num_vertices(), false);
 
     std::set<Edge> all_edges;
-    { // Collect up all edges
-      for (Vertex v : graph.vertices()) 
-        for (Vertex w : graph.neighbors(v))
-          all_edges.insert({v, w});
-    }
+    for (Vertex v : graph.vertices()) 
+      for (Vertex w : graph.neighbors(v))
+        all_edges.insert({v, w});
 
     for (const BagImpl &bag : bags) {
       for (Vertex v : bag) {
@@ -71,23 +82,31 @@ class TD {
       }
     }
 
+    if (!all_edges.empty())
+      return false;
+
     for (bool b : vertices_seen)
       if (!b)
         return false;
 
-    if (!all_edges.empty())
-      return false;
+    if (parent.size() < 2)
+      return true;
 
-    std::set<Vertex> forgotten;
-    for (size_t i = parent.size() - 1; i > 0; --i) {
-      std::set<Vertex> difference;
+    always_assert(parent.size() == graph.num_vertices());
+    std::vector<bool> forgotten(graph.num_vertices(), false);
+
+    for (size_t i = graph.num_vertices() - 1; i > 0; --i) {
+      if (parent[i] >= i)
+        return false;
+
+      std::set<Vertex> in_parent(bags[parent[i]].begin(), bags[parent[i]].end());
+
       for (Vertex v : bags[i]) {
-        if (forgotten.count(v) > 0)
+        if (forgotten[v])
           return false;
-        forgotten.insert(v);
+        if (in_parent.count(v) == 0)
+          forgotten[v] = true;
       }
-      for (Vertex v : bags[parent[i]])
-        forgotten.erase(v);
     }
 
     return true;
@@ -97,4 +116,5 @@ class TD {
   using BagImpl = std::vector<Vertex>;
   std::vector<BagImpl> bags;
   std::vector<Bag> parent;
+  size_t width_ = 0;
 };

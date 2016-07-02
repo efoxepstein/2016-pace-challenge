@@ -14,19 +14,14 @@
 #include "tree_decomposition.hpp"
 
 namespace {
-std::atomic<size_t> best_width(std::numeric_limits<size_t>::max());
-std::atomic<TD *> best_td(new TD());
-TD *tmp;
-Graph *graph;
+std::atomic<std::string *> best_td_str(new std::string(""));
+std::atomic<size_t> best_width(0);
 
 void signal_handler(int signum) {
   if (signum == SIGUSR1) {
-    std::cout << best_width << '\n';
+    std::cout << best_width.load() << '\n';
   } else if (signum == SIGTERM) {
-    if (best_td != nullptr) {
-      best_td.load()->print(*graph);
-      std::cout.flush();
-    }
+    std::cout << *best_td_str.load();
     std::exit(0);
   }
 }
@@ -63,20 +58,23 @@ int main(int argc, char **argv) {
     return 3;
   }
 
-  graph = new Graph(argv[argc - 1]);
-  tmp = new TD();
+  const Graph graph(argv[argc - 1]);
 
-  *tmp = minimum_degree_heuristic(*graph);
-  best_width = tmp->width();
-  best_td.exchange(tmp);
+  TD td = minimum_degree_heuristic(graph);
+  always_assert(td.is_valid(graph));
+
+  best_width = td.width();
+
+  std::string *tmp_str = new std::string("");
+  *tmp_str = td.to_string(graph);
+  best_td_str.exchange(tmp_str);
 
   while (true) {
-    always_assert(tmp != nullptr);
-    *tmp = minimum_fillin_heuristic(*graph);
-    size_t tmp_width = tmp->width();
-    if (tmp_width < best_width.load()) {
-      tmp = best_td.exchange(tmp);
-      best_width = tmp_width;
+    td = minimum_fillin_heuristic(graph, best_width.load());
+    always_assert(td.is_valid(graph));
+    if (td.width() < best_width.load()) {
+      *tmp_str = td.to_string(graph);
+      tmp_str = best_td_str.exchange(tmp_str);
     }
   }
 }

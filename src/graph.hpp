@@ -24,11 +24,12 @@ class Graph {
 
   std::vector<bool> adj;
   std::vector<size_t> deg;
-  std::vector<VertexList> adj_list;
+  mutable std::vector<VertexList> adj_list;
 
   size_t idx(Vertex u, Vertex v) const { return u * num_vertices_ + v; }
 
  public:
+  Graph() {}
   explicit Graph(const std::string &filename) {
     std::vector<Edge> edges;
     std::ifstream graph_file(filename);
@@ -59,7 +60,7 @@ class Graph {
 
   size_t num_vertices() const { return num_vertices_; }
 
-  const VertexList &neighbors(Vertex v) {
+  const VertexList &neighbors(Vertex v) const {
     auto end = std::remove_if(adj_list[v].begin(), adj_list[v].end(),
                               [v, this](Vertex w) { return !adjacent(v, w); });
     adj_list[v].erase(end, adj_list[v].end());
