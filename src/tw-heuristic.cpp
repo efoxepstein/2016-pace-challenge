@@ -14,6 +14,7 @@
 #include "tree_decomposition.hpp"
 
 namespace {
+std::string *tmp_str(new std::string(""));
 std::atomic<std::string *> best_td_str(new std::string(""));
 std::atomic<size_t> best_width(0);
 
@@ -22,10 +23,21 @@ void signal_handler(int signum) {
     std::cout << best_width.load() << '\n';
   } else if (signum == SIGTERM) {
     std::cout << *best_td_str.load();
+    delete tmp_str;
+    delete best_td_str.load();
     std::exit(0);
   }
 }
+
+#ifdef VALIDATE_TD
+void validate_td(const Graph &graph, const TD &td) {
+  always_assert(td.is_valid(graph));
 }
+#else
+void validate_td(const Graph &, const TD &) {}
+#endif
+
+}  // anonymous namespace
 
 int main(int argc, char **argv) {
   if (argc <= 1) {
@@ -46,7 +58,7 @@ int main(int argc, char **argv) {
   int opt;
   while ((opt = getopt(argc, argv, "fds:")) != -1) {
     if (opt == 's') {
-      srand(atoi(optarg));
+      srand(unsigned(std::stoul(optarg)));
     } else {
       std::cerr << "Invalid argument: " << opt << ", aborting\n";
       return 2;
@@ -61,22 +73,19 @@ int main(int argc, char **argv) {
   const Graph graph(argv[argc - 1]);
 
   TD td = minimum_degree_heuristic(graph);
+  validate_td(graph, td);
 
   best_width = td.width();
-
-  std::string *tmp_str = new std::string("");
 
   *tmp_str = td.to_string(graph);
   tmp_str = best_td_str.exchange(tmp_str);
 
   while (true) {
     td = minimum_fillin_heuristic(graph, best_width.load());
+    validate_td(graph, td);
     if (td.width() < best_width.load()) {
       *tmp_str = td.to_string(graph);
       tmp_str = best_td_str.exchange(tmp_str);
     }
   }
-
-  delete tmp_str;
-  delete best_td_str.load();
 }

@@ -5,12 +5,12 @@
 template <class Iter>
 class IterWrap {
  private:
-  Iter s, e;
+  Iter s_, e_;
 
  public:
-  IterWrap(Iter s, Iter e) : s(s), e(e) {}
-  Iter begin() const { return s; }
-  Iter end() const { return e; }
+  IterWrap(Iter s, Iter e) : s_(s), e_(e) {}
+  Iter begin() const { return s_; }
+  Iter end() const { return e_; }
 };
 template <class Iter>
 inline IterWrap<Iter> as_range(Iter s, Iter e) {
@@ -25,20 +25,20 @@ inline IterWrap<Iter> as_range(std::pair<Iter, Iter> pair) {
 template <class T, size_t incr>
 class RangeIterator {
  private:
-  T t;
+  T t_;
 
  public:
-  RangeIterator(T t) : t(t) {}
-  T operator*() const { return t; }
+  RangeIterator(T t) : t_(t) {}
+  T operator*() const { return t_; }
   RangeIterator<T, incr> &operator++() {
-    t += incr;
+    t_ += incr;
     return *this;
   }
   bool operator==(const RangeIterator<T, incr> &other) const {
-    return t == other.t;
+    return t_ == other.t_;
   }
   bool operator!=(const RangeIterator<T, incr> &other) const {
-    return t != other.t;
+    return t_ != other.t_;
   }
 };
 

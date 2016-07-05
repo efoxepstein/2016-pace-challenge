@@ -39,7 +39,7 @@ class Graph {
     std::string header_line;
     std::getline(graph_file, header_line);
     for (size_t i = 5; header_line[i] != ' '; ++i) {
-      n = n * 10 + (header_line[i] - '0');
+      n = n * 10 + static_cast<Vertex>(header_line[i] - '0');
     }
 
     while (graph_file >> v >> w) {

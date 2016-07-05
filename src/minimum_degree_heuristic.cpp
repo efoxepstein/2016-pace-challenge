@@ -25,7 +25,7 @@ TD elimination_ordering_to_td(const Graph &graph, ElimOrder order) {
 
     std::vector<Vertex> neighbors;
     size_t max_time = 0;
-    TD::Bag max_bag;
+    TD::Bag max_bag = 0;
     for (Vertex w : graph.neighbors(v)) {
       if (time_processed[w] < time) {
         neighbors.push_back(w);
@@ -74,7 +74,14 @@ float noise() {
   x = y;
   y = z;
   z = t ^ x ^ y;
-  return (z & 0xFFFF) / ((float)0xFFF0);
+  return static_cast<float>(z & 0xFFFF) / static_cast<float>(0xFFF0);
+}
+
+TD trivial_tree_decomposition(const Graph &graph) {
+  std::vector<Vertex> all_vertices;
+  for (Vertex w : graph.vertices())
+    all_vertices.push_back(w);
+  return TD(std::move(all_vertices));
 }
 
 template <class Fn>
@@ -101,17 +108,14 @@ TD minimum_x_heuristic(Graph &graph, Fn fn, size_t ub) {
     if (seen[v])
       continue;
 
-    if ((size_t)k != fn(graph, v)) {
+    if (static_cast<size_t>(k) != fn(graph, v)) {
       prev_fn_val[v] = fn(graph, v);
       pq.emplace(prev_fn_val[v] + noise(), v);
       continue;
     }
 
     if (graph.neighbors(v).size() >= ub) {
-      std::vector<Vertex> all_vertices;
-      for (Vertex v : graph.vertices())
-        all_vertices.push_back(v);
-      return TD(std::move(all_vertices));
+      return trivial_tree_decomposition(graph);
     }
 
     order.push_back(v);

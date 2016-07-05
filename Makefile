@@ -1,4 +1,4 @@
-EXECSOURCES := src/tw-heuristic.cpp src/td-validate.cpp
+EXECSOURCES := src/tw-heuristic.cpp
 SOURCES := src/minimum_degree_heuristic.cpp
 
 DEBUG ?= 0
@@ -14,7 +14,11 @@ EXECOBJECTS := $(addprefix $(OBJDIR)/,$(notdir $(EXECSOURCES:.cpp=.o)))
 BINARIES := $(addprefix $(BINDIR)/,$(notdir $(EXECSOURCES:.cpp=)))
 
 CXX        = $(shell which clang++ || which g++)
-CXXFLAGS   = -std=c++11 -Isrc -Wall -Wextra -Wpedantic
+
+CXXFLAGS   = -std=c++11 -Isrc -Werror -Weverything
+CXXFLAGS  += -Wno-c++98-compat -Wno-global-constructors -Wno-padded
+CXXFLAGS  += -Wno-disabled-macro-expansion
+
 LDFLAGS    =
 
 ifeq ($(DEBUG), 1)
