@@ -65,7 +65,7 @@ class TD {
     std::swap(width_, other.width_);
   }
 
-  bool is_valid(const Graph &graph) {
+  bool is_valid(const Graph &graph) const {
     std::vector<Vertex> vertices_seen(graph.num_vertices(), false);
 
     std::set<Edge> all_edges;

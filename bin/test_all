@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+make DEBUG=0 VALIDATE_TD=1
 while read line; do
   time=`date +%s`
   echo ""
@@ -13,20 +14,5 @@ while read line; do
     echo "Didn't finish in time"
     echo "Sending SIGKILL"
     kill -SIGKILL $pid
-  else
-    echo "Validating"
-    echo "bin/td-validate $line /tmp/tree-decomp"
-    bin/td-validate $line /tmp/tree-decomp &> /tmp/validation
-    if [ $? -ne 0 ]; then
-      echo "Validation failed"
-      cat /tmp/tree-decomp
-      cat /tmp/validation
-      break
-    fi
-    if grep -q invalid /tmp/validation ; then
-      cat /tmp/tree-decomp
-      cat /tmp/validation
-      break
-    fi
   fi
 done < data/directory

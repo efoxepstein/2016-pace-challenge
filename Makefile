@@ -1,8 +1,6 @@
 EXECSOURCES := src/tw-heuristic.cpp
 SOURCES := src/minimum_degree_heuristic.cpp
 
-DEBUG ?= 0
-
 ###################################################
 
 SRCDIR := src
@@ -13,22 +11,33 @@ OBJECTS := $(addprefix $(OBJDIR)/,$(notdir $(SOURCES:.cpp=.o)))
 EXECOBJECTS := $(addprefix $(OBJDIR)/,$(notdir $(EXECSOURCES:.cpp=.o)))
 BINARIES := $(addprefix $(BINDIR)/,$(notdir $(EXECSOURCES:.cpp=)))
 
-CXX        = $(shell which clang++ || which g++)
+CXX ?= $(shell which clang++ || which g++)
+LDFLAGS ?=
 
-CXXFLAGS   = -std=c++11 -Isrc -Werror -Weverything
-CXXFLAGS  += -Wno-c++98-compat -Wno-global-constructors -Wno-padded
-CXXFLAGS  += -Wno-disabled-macro-expansion
+# CXX options
+CXXFLAGS  = -std=c++11 -Isrc -fno-exceptions -MMD -MP
 
-LDFLAGS    =
+# Warning/error flags
+CXXFLAGS += -Werror -Wall -Wpedantic -Wcast-align -Wcast-qual -Wold-style-cast
+CXXFLAGS += -Wno-c++98-compat -Wno-global-constructors -Wno-padded -Wnoexcept
+CXXFLAGS += -Wredundant-decls -Wshadow -Wmissing-include-dirs
+CXXFLAGS += -Wno-disabled-macro-expansion
 
+DEBUG ?= 0
 ifeq ($(DEBUG), 1)
-  CXXFLAGS += -DDEBUG -O0 -fno-omit-frame-pointer -Werror -g
+  CXXFLAGS += -DDEBUG -O0 -fno-omit-frame-pointer -g
 else
-  CXXFLAGS += -DNDEBUG -O3 -fno-exceptions -fomit-frame-pointer -march=native
+  CXXFLAGS += -DNDEBUG -O3 -fomit-frame-pointer -march=native
+  CXXFLAGS += -Wdisabled-optimization
 endif
 
-CMD = $(CXX) $(CXXFLAGS) -MMD -MP
+VALIDATE_TD ?= 0
+ifeq ($(VALIDATE_TD), 1)
+  CXXFLAGS += -DVALIDATE_TD
+endif
 
+CMD = $(CXX) $(CXXFLAGS)
+ 
 all: $(OBJECTS) $(EXECOBJECTS) $(BINARIES) symlink
 .PHONY: all force
 
@@ -54,7 +63,7 @@ symlink: bin/tw-heuristic
 clean:
 	rm -f $(BINARIES) *.d $(OBJDIR)/*.d *.o $(OBJDIR)/*.o
 
-test: bin/tw-heuristic bin/td-validate
+test:
 	bin/test_all
 
 kill:
