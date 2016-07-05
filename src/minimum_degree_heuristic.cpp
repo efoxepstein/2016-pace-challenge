@@ -59,7 +59,6 @@ void triangulate(Graph &graph, Vertex v) {
     Vertex w1 = neighbors[i1];
     for (auto i2 = i1 + 1; i2 < neighbors.size(); ++i2) {
       Vertex w2 = neighbors[i2];
-      always_assert(w2 < graph.num_vertices());
       if (!graph.adjacent(w1, w2) && !graph.adjacent(w2, w1))
         graph.add_arc(w1, w2), graph.add_arc(w2, w1);
     }

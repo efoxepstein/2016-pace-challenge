@@ -61,20 +61,23 @@ int main(int argc, char **argv) {
   const Graph graph(argv[argc - 1]);
 
   TD td = minimum_degree_heuristic(graph);
-  always_assert(td.is_valid(graph));
 
   best_width = td.width();
 
   std::string *tmp_str = new std::string("");
+
   *tmp_str = td.to_string(graph);
-  best_td_str.exchange(tmp_str);
+  tmp_str = best_td_str.exchange(tmp_str);
 
   while (true) {
     td = minimum_fillin_heuristic(graph, best_width.load());
-    always_assert(td.is_valid(graph));
     if (td.width() < best_width.load()) {
       *tmp_str = td.to_string(graph);
       tmp_str = best_td_str.exchange(tmp_str);
     }
+    break;
   }
+
+  delete tmp_str;
+  delete best_td_str.load();
 }

@@ -20,7 +20,7 @@ LDFLAGS    =
 ifeq ($(DEBUG), 1)
   CXXFLAGS += -DDEBUG -O0 -fno-omit-frame-pointer -Werror -g
 else
-  CXXFLAGS += -DNDEBUG -O3 -g -fno-exceptions -fomit-frame-pointer -march=native
+  CXXFLAGS += -DNDEBUG -O3 -fno-exceptions -fomit-frame-pointer -march=native
 endif
 
 CMD = $(CXX) $(CXXFLAGS) -MMD -MP
