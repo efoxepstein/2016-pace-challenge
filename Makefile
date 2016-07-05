@@ -19,7 +19,7 @@ CXXFLAGS  = -std=c++11 -Isrc -fno-exceptions -MMD -MP
 
 # Warning/error flags
 CXXFLAGS += -Werror -Wall -Wpedantic -Wcast-align -Wcast-qual -Wold-style-cast
-CXXFLAGS += -Wno-c++98-compat -Wno-global-constructors -Wno-padded -Wnoexcept
+CXXFLAGS += -Wno-c++98-compat -Wno-global-constructors -Wno-padded 
 CXXFLAGS += -Wredundant-decls -Wshadow -Wmissing-include-dirs
 CXXFLAGS += -Wno-disabled-macro-expansion
 
