@@ -5,7 +5,7 @@ while read line; do
   echo "bin/tw-heuristic -s $time $line"
   bin/tw-heuristic -s $time $line > /tmp/tree-decomp &
   pid=$!
-  sleep 30
+  sleep 3
   echo "Sending SIGTERM"
   kill -SIGTERM $pid
   sleep 1

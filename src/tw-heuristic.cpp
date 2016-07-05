@@ -75,7 +75,6 @@ int main(int argc, char **argv) {
       *tmp_str = td.to_string(graph);
       tmp_str = best_td_str.exchange(tmp_str);
     }
-    break;
   }
 
   delete tmp_str;
