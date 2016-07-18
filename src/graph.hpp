@@ -30,19 +30,17 @@ class Graph {
 
  public:
   Graph() {}
-  explicit Graph(const std::string &filename) {
+  explicit Graph(std::istream &input) {
     std::vector<Edge> edges;
-    std::ifstream graph_file(filename);
-
     Vertex v, w, n = 0;
 
     std::string header_line;
-    std::getline(graph_file, header_line);
+    std::getline(input, header_line);
     for (size_t i = 5; header_line[i] != ' '; ++i) {
       n = n * 10 + static_cast<Vertex>(header_line[i] - '0');
     }
 
-    while (graph_file >> v >> w) {
+    while (input >> v >> w) {
       edges.push_back({std::min(v, w) - 1, std::max(v, w) - 1});
     }
 
@@ -56,6 +54,7 @@ class Graph {
       add_arc(e.first, e.second);
       add_arc(e.second, e.first);
     }
+    
   }
 
   size_t num_vertices() const { return num_vertices_; }

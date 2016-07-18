@@ -11,7 +11,7 @@ OBJECTS := $(addprefix $(OBJDIR)/,$(notdir $(SOURCES:.cpp=.o)))
 EXECOBJECTS := $(addprefix $(OBJDIR)/,$(notdir $(EXECSOURCES:.cpp=.o)))
 BINARIES := $(addprefix $(BINDIR)/,$(notdir $(EXECSOURCES:.cpp=)))
 
-CXX ?= $(shell which clang++ || which g++)
+CXX = $(shell which clang++ || which g++)
 LDFLAGS ?=
 
 # CXX options

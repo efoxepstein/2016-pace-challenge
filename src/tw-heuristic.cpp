@@ -66,12 +66,14 @@ int main(int argc, char **argv) {
     }
   }
 
-  if (optind != argc - 1) {
-    std::cerr << "Missing filename argument, aborting\n";
-    return 3;
-  }
+  Graph graph;
 
-  const Graph graph(argv[argc - 1]);
+  if (optind == argc - 1) {
+    std::ifstream graph_input(argv[argc-1]);
+    graph = Graph(graph_input);
+  } else {
+    graph = Graph(std::cin);
+  }
 
   TD td = minimum_degree_heuristic(graph);
   validate_td(graph, td);
@@ -88,6 +90,7 @@ int main(int argc, char **argv) {
       *tmp_str = td.to_string(graph);
       tmp_str = best_td_str.exchange(tmp_str);
 
+      best_width = td.width();
       std::cout << "c status " << td.width() << " "
         << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() 
         << "\n";
