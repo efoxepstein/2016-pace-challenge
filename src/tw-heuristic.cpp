@@ -1,4 +1,5 @@
 #include <atomic>
+#include <chrono>
 #include <csignal>
 #include <cstdlib>
 #include <iostream>
@@ -19,14 +20,14 @@ std::atomic<std::string *> best_td_str(new std::string(""));
 std::atomic<size_t> best_width(0);
 
 void signal_handler(int signum) {
-  if (signum == SIGUSR1) {
-    std::cout << best_width.load() << '\n';
-  } else if (signum == SIGTERM) {
+  if (signum == SIGTERM) {
     std::cout << *best_td_str.load();
     delete tmp_str;
     delete best_td_str.load();
     std::exit(0);
   }
+  std::cerr << "Invalid signal, aborting\n";
+  std::exit(4);
 }
 
 #ifdef VALIDATE_TD
@@ -39,6 +40,8 @@ void validate_td(const Graph &, const TD &) {}
 
 }  // anonymous namespace
 
+
+
 int main(int argc, char **argv) {
   if (argc <= 1) {
     std::cerr << "No arguments provided, aborting\n";
@@ -50,9 +53,7 @@ int main(int argc, char **argv) {
   sa.sa_handler = signal_handler;
   sa.sa_flags = SA_RESTART;
   sigemptyset(&sa.sa_mask);
-  sigaddset(&sa.sa_mask, SIGUSR1);
   sigaddset(&sa.sa_mask, SIGTERM);
-  sigaction(SIGUSR1, &sa, NULL);
   sigaction(SIGTERM, &sa, NULL);
 
   int opt;
@@ -86,6 +87,10 @@ int main(int argc, char **argv) {
     if (td.width() < best_width.load()) {
       *tmp_str = td.to_string(graph);
       tmp_str = best_td_str.exchange(tmp_str);
+
+      std::cout << "c status " << td.width() << " "
+        << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() 
+        << "\n";
     }
   }
 }
