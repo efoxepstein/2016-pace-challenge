@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
   best_width = td.width();
   std::cout << "c status " << td.width() << " "
             << std::chrono::duration_cast<std::chrono::milliseconds>(
-                   std::chrono::steady_clock::now().time_since_epoch()).count()
+                   std::chrono::system_clock::now().time_since_epoch()).count()
             << "\n";
 
   while (true) {
@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
       best_width = td.width();
       std::cout << "c status " << td.width() << " "
                 << std::chrono::duration_cast<std::chrono::milliseconds>(
-                       std::chrono::steady_clock::now().time_since_epoch())
+                       std::chrono::system_clock::now().time_since_epoch())
                        .count() << "\n";
     }
   }
