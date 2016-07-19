@@ -40,8 +40,6 @@ void validate_td(const Graph &, const TD &) {}
 
 }  // anonymous namespace
 
-
-
 int main(int argc, char **argv) {
   if (argc <= 1) {
     std::cerr << "No arguments provided, aborting\n";
@@ -69,7 +67,7 @@ int main(int argc, char **argv) {
   Graph graph;
 
   if (optind == argc - 1) {
-    std::ifstream graph_input(argv[argc-1]);
+    std::ifstream graph_input(argv[argc - 1]);
     graph = Graph(graph_input);
   } else {
     graph = Graph(std::cin);
@@ -78,10 +76,13 @@ int main(int argc, char **argv) {
   TD td = minimum_degree_heuristic(graph);
   validate_td(graph, td);
 
-  best_width = td.width();
-
   *tmp_str = td.to_string(graph);
   tmp_str = best_td_str.exchange(tmp_str);
+  best_width = td.width();
+  std::cout << "c status " << td.width() << " "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(
+                   std::chrono::steady_clock::now().time_since_epoch()).count()
+            << "\n";
 
   while (true) {
     td = minimum_fillin_heuristic(graph, best_width.load());
@@ -89,11 +90,11 @@ int main(int argc, char **argv) {
     if (td.width() < best_width.load()) {
       *tmp_str = td.to_string(graph);
       tmp_str = best_td_str.exchange(tmp_str);
-
       best_width = td.width();
       std::cout << "c status " << td.width() << " "
-        << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() 
-        << "\n";
+                << std::chrono::duration_cast<std::chrono::milliseconds>(
+                       std::chrono::steady_clock::now().time_since_epoch())
+                       .count() << "\n";
     }
   }
 }
