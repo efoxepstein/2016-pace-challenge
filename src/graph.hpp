@@ -7,6 +7,7 @@
 #include <fstream>
 #include <forward_list>
 #include <set>
+#include <sstream>
 #include <utility>
 #include <vector>
 
@@ -34,22 +35,24 @@ class Graph {
     std::vector<Edge> edges;
     Vertex v, w, n = 0;
 
-    std::string header_line;
-    std::getline(input, header_line);
-    for (size_t i = 5; header_line[i] != ' '; ++i) {
-      n = n * 10 + static_cast<Vertex>(header_line[i] - '0');
+    std::string line;
+    std::getline(input, line);
+    for (size_t i = 5; line[i] != ' '; ++i) {
+      n = n * 10 + static_cast<Vertex>(line[i] - '0');
     }
 
-    while (input >> v >> w) {
+    while (std::getline(input, line)) {
+      if (line[0] == 'c')
+        continue;
+      std::stringstream ss(line);
+      ss >> v >> w;
       edges.push_back({std::min(v, w) - 1, std::max(v, w) - 1});
     }
 
     num_vertices_ = n;
-
     adj.resize(n * n, false);
     adj_list.resize(n);
     deg.resize(n, 0);
-
     for (Edge e : edges) {
       add_arc(e.first, e.second);
       add_arc(e.second, e.first);
