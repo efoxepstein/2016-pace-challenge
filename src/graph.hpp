@@ -36,7 +36,9 @@ class Graph {
     Vertex v, w, n = 0;
 
     std::string line;
-    std::getline(input, line);
+    while(std::getline(input, line))
+      if (line[0] != 'c')
+        break;
     for (size_t i = 5; line[i] != ' '; ++i) {
       n = n * 10 + static_cast<Vertex>(line[i] - '0');
     }
