@@ -22,8 +22,6 @@ std::atomic<size_t> best_width(0);
 void signal_handler(int signum) {
   if (signum == SIGTERM) {
     std::cout << *best_td_str.load();
-    delete tmp_str;
-    delete best_td_str.load();
     std::exit(0);
   }
   std::cerr << "Invalid signal, aborting\n";
@@ -41,11 +39,6 @@ void validate_td(const Graph &, const TD &) {}
 }  // anonymous namespace
 
 int main(int argc, char **argv) {
-  if (argc <= 1) {
-    std::cerr << "No arguments provided, aborting\n";
-    return 1;
-  }
-
   // Set up signal handling
   struct sigaction sa;
   sa.sa_handler = signal_handler;
@@ -60,7 +53,7 @@ int main(int argc, char **argv) {
       srand(unsigned(std::stoul(optarg)));
     } else {
       std::cerr << "Invalid argument: " << opt << ", aborting\n";
-      return 2;
+      return 1;
     }
   }
 
